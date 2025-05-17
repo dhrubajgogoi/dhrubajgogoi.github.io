@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solar Panel I-V Simulation</title>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Tailwind-inspired CSS (replacing CDN) */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* bg-gray-100 */
+        }
+        .container {
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+            padding: 1rem; /* p-4 */
+        }
+        .flex {
+            display: flex;
+        }
+        .justify-between {
+            justify-content: space-between;
+        }
+        .items-center {
+            align-items: center;
+        }
+        .mb-6 {
+            margin-bottom: 1.5rem;
+        }
+        .mt-8 {
+            margin-top: 2rem;
+        }
+        .text-2xl {
+            font-size: 1.5rem;
+            line-height: 2rem;
+        }
+        .text-lg {
+            font-size: 1.125rem;
+            line-height: 1.75rem;
+        }
+        .text-md {
+            font-size: 1rem;
+            line-height: 1.5rem;
+        }
+        .text-sm {
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+        }
+        .font-bold {
+            font-weight: 700;
+        }
+        .font-semibold {
+            font-weight: 600;
+        }
+        .font-medium {
+            font-weight: 500;
+        }
+        .text-gray-600 {
+            color: #4b5563;
+        }
+        .text-gray-700 {
+            color: #374151;
+        }
+        .text-blue-600 {
+            color: #2563eb;
+        }
+        .text-white {
+            color: #ffffff;
+        }
+        .text-center {
+            text-align: center;
+        }
+        .hover\:underline:hover {
+            text-decoration: underline;
+        }
+        .bg-white {
+            background-color: #ffffff;
+        }
+        .bg-green-500 {
+            background-color: #22c55e;
+        }
+        .hover\:bg-green-600:hover {
+            background-color: #16a34a;
+        }
+        .bg-blue-500 {
+            background-color: #3b82f6;
+        }
+        .hover\:bg-blue-600:hover {
+            background-color: #2563eb;
+        }
+        .p-6 {
+            padding: 1.5rem;
+        }
+        .px-4 {
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+        .py-2 {
+            padding-top: 0.5rem;
+            padding-bottom: 0.5rem;
+        }
+        .rounded {
+            border-radius: 0.375rem;
+        }
+        .border {
+            border-width: 1px;
+            border-color: #d1d5db; /* border-gray-300 */
+        }
+        .shadow-md {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .grid {
+            display: grid;
+        }
+        .grid-cols-1 {
+            grid-template-columns: repeat(1, minmax(0, 1fr));
+        }
+        @media (min-width: 768px) {
+            .md\:grid-cols-2 {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+            .md\:grid-cols-3 {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+        }
+        .gap-4 {
+            gap: 1rem;
+        }
+        .space-y-2 > :not([hidden]) ~ :not([hidden]) {
+            margin-top: 0.5rem;
+        }
+        .w-full {
+            width: 100%;
+        }
+        .w-1\/2 {
+            width: 50%;
+        }
+        .mt-4 {
+            margin-top: 1rem;
+        }
+        .mt-2 {
+            margin-top: 0.5rem;
+        }
+        .mb-4 {
+            margin-bottom: 1rem;
+        }
+        .mb-2 {
+            margin-bottom: 0.5rem;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #e5e7eb; /* border-gray-200 */
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #f3f4f6; /* bg-gray-50 */
+        }
+        .text-red-600 {
+            color: #dc2626;
+        }
+        .hidden {
+            display: none;
+        }
+        footer {
+            margin-top: 2rem;
+            padding: 1rem 0;
+            border-top: 1px solid #e5e7eb; /* border-gray-200 */
+        }
+        canvas {
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-bold">Solar Panel I-V Simulation</h1>
+            <a href="https://dhrubajgogoi.github.io/" class="text-blue-600 hover:underline">Home</a>
+        </header>
+        <p class="text-gray-600 mb-4">Simulate I-V data for a solar panel under STC (1000 W/m², 25°C, AM1.5) to calculate the fill factor. Enter parameters and click "Simulate".</p>
+        
+        <!-- Input Form -->
+        <div class="bg-white p-6 rounded shadow-md mb-6">
+            <h2 class="text-lg font-semibold mb-4">Solar Panel Parameters</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Open-Circuit Voltage (V<sub>oc</sub>, V)</label>
+                    <input type="number" step="0.1" id="voc" value="21.0" class="w-full p-2 border rounded" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Short-Circuit Current (I<sub>sc</sub>, mA)</label>
+                    <input type="number" step="0.1" id="isc" value="400.0" class="w-full p-2 border rounded" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Shape Factor (0.1–2.0)</label>
+                    <input type="number" step="0.01" id="shape" value="0.5" min="0.1" max="2.0" class="w-full p-2 border rounded" required>
+                </div>
+            </div>
+            <button onclick="simulateIVCurve()" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Simulate</button>
+            <p id="error-message" class="mt-2 text-red-600 hidden">Please enter valid parameters (V<sub>oc</sub> > 0, I<sub>sc</sub> > 0, Shape Factor 0.1–2.0).</p>
+        </div>
+
+        <!-- Results Section -->
+        <div id="results" class="bg-white p-6 rounded shadow-md hidden">
+            <h2 class="text-lg font-semibold mb-4">Simulation Results</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <p id="voc-result" class="mb-2"></p>
+                    <p id="isc-result" class="mb-2"></p>
+                    <p id="vmp-result" class="mb-2"></p>
+                    <p id="imp-result" class="mb-2"></p>
+                    <p id="pmax-result" class="mb-2"></p>
+                    <p id="ff-result" class="mb-2"></p>
+                </div>
+                <div>
+                    <canvas id="iv-chart" class="mb-4"></canvas>
+                    <canvas id="pv-chart"></canvas>
+                </div>
+            </div>
+            <h3 class="text-md font-semibold mb-2">I-V Data</h3>
+            <table id="data-table">
+                <thead>
+                    <tr>
+                        <th>Voltage (V)</th>
+                        <th>Current (mA)</th>
+                        <th>Power (W)</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body"></tbody>
+            </table>
+        </div>
+
+        <!-- Footer -->
+        <footer class="text-center text-gray-600">
+            <p>For students' learning purpose only</p>
+        </footer>
+    </div>
+
+    <script>
+        let ivChart, pvChart;
+
+        function simulateIVCurve() {
+            const voc = parseFloat(document.getElementById('voc').value);
+            const isc = parseFloat(document.getElementById('isc').value);
+            const shape = parseFloat(document.getElementById('shape').value);
+            const errorMessage = document.getElementById('error-message');
+            const resultsDiv = document.getElementById('results');
+            const tableBody = document.getElementById('table-body');
+
+            // Validate inputs
+            if (isNaN(voc) || isNaN(isc) || isNaN(shape) || voc <= 0 || isc <= 0 || shape < 0.1 || shape > 2.0) {
+                errorMessage.classList.remove('hidden');
+                resultsDiv.classList.add('hidden');
+                return;
+            }
+
+            errorMessage.classList.add('hidden');
+            resultsDiv.classList.remove('hidden');
+
+            // Generate I-V data (simplified diode model)
+            const points = 20; // Number of data points
+            const voltages = [];
+            const currents = [];
+            const powers = [];
+            for (let i = 0; i <= points; i++) {
+                const v = (i / points) * voc; // Voltage from 0 to V_oc
+                // Simplified I-V curve: I = I_sc * (1 - (V/V_oc)^shape)
+                const current = isc * (1 - Math.pow(v / voc, shape)); // Changed 'i' to 'current'
+                const p = (v * current) / 1000; // Power in W (I in mA)
+                voltages.push(v);
+                currents.push(current);
+                powers.push(p);
+            }
+
+            // Find maximum power point
+            let maxPower = 0;
+            let vmp = 0, imp = 0;
+            for (let i = 0; i < voltages.length; i++) {
+                if (powers[i] > maxPower) {
+                    maxPower = powers[i];
+                    vmp = voltages[i];
+                    imp = currents[i]; // Changed 'i' to 'currents[i]'
+                }
+            }
+
+            // Calculate fill factor
+            const ff = (vmp * imp) / (voc * isc);
+
+            // Display results
+            document.getElementById('voc-result').innerText = `Open-Circuit Voltage (V_oc): ${voc.toFixed(2)} V`;
+            document.getElementById('isc-result').innerText = `Short-Circuit Current (I_sc): ${isc.toFixed(2)} mA`;
+            document.getElementById('vmp-result').innerText = `Voltage at Max Power (V_mp): ${vmp.toFixed(2)} V`;
+            document.getElementById('imp-result').innerText = `Current at Max Power (I_mp): ${imp.toFixed(2)} mA`;
+            document.getElementById('pmax-result').innerText = `Maximum Power (P_max): ${maxPower.toFixed(4)} W`;
+            document.getElementById('ff-result').innerText = `Fill Factor (FF): ${ff.toFixed(4)}`;
+
+            // Populate data table
+            tableBody.innerHTML = '';
+            for (let i = 0; i < voltages.length; i++) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${voltages[i].toFixed(2)}</td>
+                    <td>${currents[i].toFixed(2)}</td>
+                    <td>${powers[i].toFixed(4)}</td>
+                `;
+                tableBody.appendChild(row);
+            }
+
+            // Destroy existing charts if they exist
+            if (ivChart) ivChart.destroy();
+            if (pvChart) pvChart.destroy();
+
+            // Plot I-V curve
+            const ivCtx = document.getElementById('iv-chart').getContext('2d');
+            ivChart = new Chart(ivCtx, {
+                type: 'line',
+                data: {
+                    labels: voltages.map(v => v.toFixed(2)),
+                    datasets: [{
+                        label: 'I-V Curve',
+                        data: currents,
+                        borderColor: '#2563eb',
+                        fill: false,
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: { title: { display: true, text: 'Voltage (V)' } },
+                        y: { title: { display: true, text: 'Current (mA)' } }
+                    },
+                    plugins: {
+                        title: { display: true, text: 'I-V Curve' }
+                    }
+                }
+            });
+
+            // Plot P-V curve
+            const pvCtx = document.getElementById('pv-chart').getContext('2d');
+            pvChart = new Chart(pvCtx, {
+                type: 'line',
+                data: {
+                    labels: voltages.map(v => v.toFixed(2)),
+                    datasets: [{
+                        label: 'P-V Curve',
+                        data: powers,
+                        borderColor: '#dc2626',
+                        fill: false,
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: { title: { display: true, text: 'Voltage (V)' } },
+                        y: { title: { display: true, text: 'Power (W)' } }
+                    },
+                    plugins: {
+                        title: { display: true, text: 'P-V Curve' }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
