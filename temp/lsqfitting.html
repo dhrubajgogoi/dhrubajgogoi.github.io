@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Least Square Fitting Calculator</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #e5e7eb;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #f3f4f6;
+        }
+        #error-message {
+            color: #dc2626;
+            display: none;
+        }
+        footer {
+            margin-top: 2rem;
+            padding: 1rem 0;
+            border-top: 1px solid #e5e7eb;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto p-4">
+        <header class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-bold">Least Square Fitting Calculator</h1>
+            <a href="https://dhrubajgogoi.github.io/" class="text-blue-600 hover:underline">Home</a>
+        </header>
+        <p class="text-gray-600 mb-4">Enter at least 10 data points (x, y) to calculate the best-fit line (y = mx + c).</p>
+        
+        <!-- Input Form -->
+        <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+            <h2 class="text-lg font-semibold mb-4">Input Data Points</h2>
+            <div id="input-container" class="space-y-2">
+                <!-- Initial 10 input fields -->
+                <div class="flex space-x-2">
+                    <input type="number" step="any" placeholder="x1" class="x-input w-1/2 p-2 border rounded" required>
+                    <input type="number" step="any" placeholder="y1" class="y-input w-1/2 p-2 border rounded" required>
+                </div>
+                <div class="flex space-x-2">
+                    <input type="number" step="any" placeholder="x2" class="x-input w-1/2 p-2 border rounded" required>
+                    <input type="number" step="any" placeholder="y2" class="y-input w-1/2 p-2 border rounded" required>
+                </div>
+                <div class="flex space-x-2">
+                    <input type="number" step="any" placeholder="x3" class="x-input w-1/2 p-2 border rounded" required>
+                    <input type="number" step="any" placeholder="y3" class="y-input w-1/2 p-2 border rounded" required>
+                </div>
+                <div class="flex space-x-2">
+                    <input type="number" step="any" placeholder="x4" class="x-input w-1/2 p-2 border rounded" required>
+                    <input type="number" step="any" placeholder="y4" class="y-input w-1/2 p-2 border rounded" required>
+                </div>
+                <div class="flex space-x-2">
+                    <input type="number" step="any" placeholder="x5" class="x-input w-1/2 p-2 border rounded" required>
+                    <input type="number" step="any" placeholder="y5" class="y-input w-1/2 p-2 border rounded" required>
+                </div>
+                <div class="flex space-x-2">
+                    <input type="number" step="any" placeholder="x6" class="x-input w-1/2 p-2 border rounded" required>
+                    <input type="number" step="any" placeholder="y6" class="y-input w-1/2 p-2 border rounded" required>
+                </div>
+                <div class="flex space-x-2">
+                    <input type="number" step="any" placeholder="x7" class="x-input w-1/2 p-2 border rounded" required>
+                    <input type="number" step="any" placeholder="y7" class="y-input w-1/2 p-2 border rounded" required>
+                </div>
+                <div class="flex space-x-2">
+                    <input type="number" step="any" placeholder="x8" class="x-input w-1/2 p-2 border rounded" required>
+                    <input type="number" step="any" placeholder="y8" class="y-input w-1/2 p-2 border rounded" required>
+                </div>
+                <div class="flex space-x-2">
+                    <input type="number" step="any" placeholder="x9" class="x-input w-1/2 p-2 border rounded" required>
+                    <input type="number" step="any" placeholder="y9" class="y-input w-1/2 p-2 border rounded" required>
+                </div>
+                <div class="flex space-x-2">
+                    <input type="number" step="any" placeholder="x10" class="x-input w-1/2 p-2 border rounded" required>
+                    <input type="number" step="any" placeholder="y10" class="y-input w-1/2 p-2 border rounded" required>
+                </div>
+            </div>
+            <button onclick="addInputField()" class="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Add More Points</button>
+            <button onclick="calculateLeastSquares()" class="mt-4 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Calculate</button>
+            <p id="error-message" class="mt-2">Please enter at least 10 valid data points.</p>
+        </div>
+
+        <!-- Results Section -->
+        <div id="results" class="bg-white p-6 rounded-lg shadow-md hidden">
+            <h2 class="text-lg font-semibold mb-4">Results</h2>
+            <p id="equation" class="mb-2"></p>
+            <p id="slope" class="mb-2"></p>
+            <p id="intercept" class="mb-4"></p>
+            <h3 class="text-md font-semibold mb-2">Input Data</h3>
+            <table id="data-table">
+                <thead>
+                    <tr>
+                        <th>x</th>
+                        <th>y</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body"></tbody>
+            </table>
+        </div>
+
+        <!-- Footer -->
+        <footer class="text-center text-gray-600 mt-8">
+            <p>For students' learning purpose only</p>
+        </footer>
+    </div>
+
+    <script>
+        // Add new input field pair
+        function addInputField() {
+            const container = document.getElementById('input-container');
+            const index = container.children.length + 1;
+            const div = document.createElement('div');
+            div.className = 'flex space-x-2';
+            div.innerHTML = `
+                <input type="number" step="any" placeholder="x${index}" class="x-input w-1/2 p-2 border rounded" required>
+                <input type="number" step="any" placeholder="y${index}" class="y-input w-1/2 p-2 border rounded" required>
+            `;
+            container.appendChild(div);
+        }
+
+        // Calculate least square fitting
+        function calculateLeastSquares() {
+            const xInputs = document.getElementsByClassName('x-input');
+            const yInputs = document.getElementsByClassName('y-input');
+            const errorMessage = document.getElementById('error-message');
+            const resultsDiv = document.getElementById('results');
+            const tableBody = document.getElementById('table-body');
+
+            // Validate inputs
+            let xValues = [];
+            let yValues = [];
+            for (let i = 0; i < xInputs.length; i++) {
+                const x = parseFloat(xInputs[i].value);
+                const y = parseFloat(yInputs[i].value);
+                if (isNaN(x) || isNaN(y)) {
+                    errorMessage.style.display = 'block';
+                    resultsDiv.classList.add('hidden');
+                    return;
+                }
+                xValues.push(x);
+                yValues.push(y);
+            }
+
+            if (xValues.length < 10) {
+                errorMessage.style.display = 'block';
+                resultsDiv.classList.add('hidden');
+                return;
+            }
+
+            errorMessage.style.display = 'none';
+            resultsDiv.classList.remove('hidden');
+
+            // Least square calculations
+            const n = xValues.length;
+            let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
+            for (let i = 0; i < n; i++) {
+                sumX += xValues[i];
+                sumY += yValues[i];
+                sumXY += xValues[i] * yValues[i];
+                sumX2 += xValues[i] * xValues[i];
+            }
+
+            const m = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+            const c = (sumY - m * sumX) / n;
+
+            // Display results
+            document.getElementById('equation').innerText = `Best-Fit Line: y = ${m.toFixed(4)}x + ${c.toFixed(4)}`;
+            document.getElementById('slope').innerText = `Slope (m): ${m.toFixed(4)}`;
+            document.getElementById('intercept').innerText = `Intercept (c): ${c.toFixed(4)}`;
+
+            // Populate data table
+            tableBody.innerHTML = '';
+            for (let i = 0; i < n; i++) {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td>${xValues[i].toFixed(2)}</td><td>${yValues[i].toFixed(2)}</td>`;
+                tableBody.appendChild(row);
+            }
+        }
+    </script>
+</body>
+</html>
