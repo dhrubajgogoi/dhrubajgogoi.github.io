@@ -4,53 +4,170 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Least Square Fitting Calculator</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
             font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* bg-gray-100 */
         }
         .container {
             max-width: 800px;
-            margin: 0 auto;
-            padding: 1rem;
+            margin-left: auto;
+            margin-right: auto;
+            padding: 1rem; /* p-4 */
+        }
+        .flex {
+            display: flex;
+        }
+        .justify-between {
+            justify-content: space-between;
+        }
+        .items-center {
+            align-items: center;
+        }
+        .mb-6 {
+            margin-bottom: 1.5rem;
+        }
+        .mt-8 {
+            margin-top: 2rem;
+        }
+        .text-2xl {
+            font-size: 1.5rem;
+            line-height: 2rem;
+        }
+        .text-lg {
+            font-size: 1.125rem;
+            line-height: 1.75rem;
+        }
+        .text-md {
+            font-size: 1rem;
+            line-height: 1.5rem;
+        }
+        .font-bold {
+            font-weight: 700;
+        }
+        .font-semibold {
+            font-weight: 600;
+        }
+        .text-gray-600 {
+            color: #4b5563;
+        }
+        .text-blue-600 {
+            color: #2563eb;
+        }
+        .text-white {
+            color: #ffffff;
+        }
+        .text-center {
+            text-align: center;
+        }
+        .hover\:underline:hover {
+            text-decoration: underline;
+        }
+        .bg-white {
+            background-color: #ffffff;
+        }
+        .bg-green-500 {
+            background-color: #22c55e;
+        }
+        .hover\:bg-green-600:hover {
+            background-color: #16a34a;
+        }
+        .bg-blue-500 {
+            background-color: #3b82f6;
+        }
+        .hover\:bg-blue-600:hover {
+            background-color: #2563eb;
+        }
+        .p-6 {
+            padding: 1.5rem;
+        }
+        .px-4 {
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+        .py-2 {
+            padding-top: 0.5rem;
+            padding-bottom: 0.5rem;
+        }
+        .rounded {
+            border-radius: 0.375rem;
+        }
+        .border {
+            border-width: 1px;
+            border-color: #d1d5db; /* border-gray-300 */
+        }
+        .shadow-md {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .space-y-2 > :not([hidden]) ~ :not([hidden]) {
+            margin-top: 0.5rem;
+        }
+        .space-x-2 > :not([hidden]) ~ :not([hidden]) {
+            margin-left: 0.5rem;
+        }
+        .w-full {
+            width: 100%;
+        }
+        .w-1\/2 {
+            width: 50%;
+        }
+        .mt-4 {
+            margin-top: 1rem;
+        }
+        .mt-2 {
+            margin-top: 0.5rem;
+        }
+        .mb-4 {
+            margin-bottom: 1rem;
         }
         table {
             width: 100%;
             border-collapse: collapse;
         }
         th, td {
-            border: 1px solid #e5e7eb;
+            border: 1px solid #e5e7eb; /* border-gray-200 */
             padding: 8px;
             text-align: center;
         }
         th {
-            background-color: #f3f4f6;
+            background-color: #f3f4f6; /* bg-gray-50 */
         }
-        #error-message {
+        .text-red-600 {
             color: #dc2626;
+        }
+        .hidden {
             display: none;
         }
         footer {
             margin-top: 2rem;
             padding: 1rem 0;
-            border-top: 1px solid #e5e7eb;
+            border-top: 1px solid #e5e7eb; /* border-gray-200 */
+        }
+        canvas {
+            max-width: 100%;
+            height: auto;
+        }
+        .button-group {
+            display: flex;
+            gap: 0.5rem;
         }
     </style>
 </head>
-<body class="bg-gray-100">
-    <div class="container mx-auto p-4">
+<body>
+    <div class="container">
         <header class="flex justify-between items-center mb-6">
             <h1 class="text-2xl font-bold">Least Square Fitting Calculator</h1>
             <a href="https://dhrubajgogoi.github.io/" class="text-blue-600 hover:underline">Home</a>
         </header>
-        <p class="text-gray-600 mb-4">Enter at least 10 data points (x, y) to calculate the best-fit line (y = mx + c).</p>
+        <p class="text-gray-600 mb-4">Enter at least 5 data points (x, y) to calculate the best-fit line (y = mx + c). Use '+' or '−' to adjust the number of points.</p>
         
         <!-- Input Form -->
-        <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+        <div class="bg-white p-6 rounded shadow-md mb-6">
             <h2 class="text-lg font-semibold mb-4">Input Data Points</h2>
             <div id="input-container" class="space-y-2">
-                <!-- Initial 10 input fields -->
+                <!-- Initial 5 input fields -->
                 <div class="flex space-x-2">
                     <input type="number" step="any" placeholder="x1" class="x-input w-1/2 p-2 border rounded" required>
                     <input type="number" step="any" placeholder="y1" class="y-input w-1/2 p-2 border rounded" required>
@@ -71,44 +188,29 @@
                     <input type="number" step="any" placeholder="x5" class="x-input w-1/2 p-2 border rounded" required>
                     <input type="number" step="any" placeholder="y5" class="y-input w-1/2 p-2 border rounded" required>
                 </div>
-                <div class="flex space-x-2">
-                    <input type="number" step="any" placeholder="x6" class="x-input w-1/2 p-2 border rounded" required>
-                    <input type="number" step="any" placeholder="y6" class="y-input w-1/2 p-2 border rounded" required>
-                </div>
-                <div class="flex space-x-2">
-                    <input type="number" step="any" placeholder="x7" class="x-input w-1/2 p-2 border rounded" required>
-                    <input type="number" step="any" placeholder="y7" class="y-input w-1/2 p-2 border rounded" required>
-                </div>
-                <div class="flex space-x-2">
-                    <input type="number" step="any" placeholder="x8" class="x-input w-1/2 p-2 border rounded" required>
-                    <input type="number" step="any" placeholder="y8" class="y-input w-1/2 p-2 border rounded" required>
-                </div>
-                <div class="flex space-x-2">
-                    <input type="number" step="any" placeholder="x9" class="x-input w-1/2 p-2 border rounded" required>
-                    <input type="number" step="any" placeholder="y9" class="y-input w-1/2 p-2 border rounded" required>
-                </div>
-                <div class="flex space-x-2">
-                    <input type="number" step="any" placeholder="x10" class="x-input w-1/2 p-2 border rounded" required>
-                    <input type="number" step="any" placeholder="y10" class="y-input w-1/2 p-2 border rounded" required>
-                </div>
             </div>
-            <button onclick="addInputField()" class="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Add More Points</button>
-            <button onclick="calculateLeastSquares()" class="mt-4 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Calculate</button>
-            <p id="error-message" class="mt-2">Please enter at least 10 valid data points.</p>
+            <div class="button-group mt-4">
+                <button onclick="addInputField()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">+</button>
+                <button onclick="removeInputField()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">−</button>
+                <button onclick="calculateLeastSquares()" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Calculate</button>
+            </div>
+            <p id="error-message" class="mt-2 text-red-600 hidden">Please enter at least 5 valid data points.</p>
         </div>
 
         <!-- Results Section -->
-        <div id="results" class="bg-white p-6 rounded-lg shadow-md hidden">
+        <div id="results" class="bg-white p-6 rounded shadow-md hidden">
             <h2 class="text-lg font-semibold mb-4">Results</h2>
             <p id="equation" class="mb-2"></p>
             <p id="slope" class="mb-2"></p>
             <p id="intercept" class="mb-4"></p>
-            <h3 class="text-md font-semibold mb-2">Input Data</h3>
+            <h3 class="text-md font-semibold mb-2">Data and Fit</h3>
+            <canvas id="fit-chart" class="mb-4"></canvas>
             <table id="data-table">
                 <thead>
                     <tr>
                         <th>x</th>
-                        <th>y</th>
+                        <th>Raw y</th>
+                        <th>Fitted y</th>
                     </tr>
                 </thead>
                 <tbody id="table-body"></tbody>
@@ -122,6 +224,8 @@
     </div>
 
     <script>
+        let fitChart;
+
         // Add new input field pair
         function addInputField() {
             const container = document.getElementById('input-container');
@@ -133,6 +237,14 @@
                 <input type="number" step="any" placeholder="y${index}" class="y-input w-1/2 p-2 border rounded" required>
             `;
             container.appendChild(div);
+        }
+
+        // Remove last input field pair if above minimum
+        function removeInputField() {
+            const container = document.getElementById('input-container');
+            if (container.children.length > 5) {
+                container.removeChild(container.lastChild);
+            }
         }
 
         // Calculate least square fitting
@@ -150,7 +262,7 @@
                 const x = parseFloat(xInputs[i].value);
                 const y = parseFloat(yInputs[i].value);
                 if (isNaN(x) || isNaN(y)) {
-                    errorMessage.style.display = 'block';
+                    errorMessage.classList.remove('hidden');
                     resultsDiv.classList.add('hidden');
                     return;
                 }
@@ -158,13 +270,13 @@
                 yValues.push(y);
             }
 
-            if (xValues.length < 10) {
-                errorMessage.style.display = 'block';
+            if (xValues.length < 5) {
+                errorMessage.classList.remove('hidden');
                 resultsDiv.classList.add('hidden');
                 return;
             }
 
-            errorMessage.style.display = 'none';
+            errorMessage.classList.add('hidden');
             resultsDiv.classList.remove('hidden');
 
             // Least square calculations
@@ -180,6 +292,9 @@
             const m = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
             const c = (sumY - m * sumX) / n;
 
+            // Calculate fitted y values
+            const fittedY = xValues.map(x => m * x + c);
+
             // Display results
             document.getElementById('equation').innerText = `Best-Fit Line: y = ${m.toFixed(4)}x + ${c.toFixed(4)}`;
             document.getElementById('slope').innerText = `Slope (m): ${m.toFixed(4)}`;
@@ -189,9 +304,55 @@
             tableBody.innerHTML = '';
             for (let i = 0; i < n; i++) {
                 const row = document.createElement('tr');
-                row.innerHTML = `<td>${xValues[i].toFixed(2)}</td><td>${yValues[i].toFixed(2)}</td>`;
+                row.innerHTML = `
+                    <td>${xValues[i].toFixed(2)}</td>
+                    <td>${yValues[i].toFixed(2)}</td>
+                    <td>${fittedY[i].toFixed(2)}</td>
+                `;
                 tableBody.appendChild(row);
             }
+
+            // Destroy existing chart if it exists
+            if (fitChart) fitChart.destroy();
+
+            // Plot raw data and fitted line
+            const ctx = document.getElementById('fit-chart').getContext('2d');
+            fitChart = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: [
+                        {
+                            label: 'Raw Data',
+                            data: xValues.map((x, i) => ({ x, y: yValues[i] })),
+                            backgroundColor: '#dc2626',
+                            pointRadius: 5,
+                            showLine: false
+                        },
+                        {
+                            label: 'Fitted Line',
+                            data: [
+                                { x: Math.min(...xValues), y: m * Math.min(...xValues) + c },
+                                { x: Math.max(...xValues), y: m * Math.max(...xValues) + c }
+                            ],
+                            borderColor: '#2563eb',
+                            backgroundColor: '#2563eb',
+                            showLine: true,
+                            pointRadius: 0,
+                            fill: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: { title: { display: true, text: 'x' } },
+                        y: { title: { display: true, text: 'y' } }
+                    },
+                    plugins: {
+                        title: { display: true, text: 'Least Square Fit' }
+                    }
+                }
+            });
         }
     </script>
 </body>
