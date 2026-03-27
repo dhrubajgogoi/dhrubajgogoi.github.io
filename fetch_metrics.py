@@ -26,41 +26,57 @@ def fetch_all_stats():
         stats['scholar']['citations'] = author.get('citedby', 0)
         stats['scholar']['h_index'] = author.get('hindex', 0)
         stats['scholar']['i10_index'] = author.get('i10index', 0)
-        print("Scholar fetched successfully.")
+        print("✅ Scholar fetched successfully.")
     except Exception as e:
-        print(f"Scholar Error: {e}")
+        print(f"❌ Scholar Error: {e}")
 
     # 2. Fetch Scopus
-    if SCOPUS_ID and SCOPUS_API_KEY:
+    if not SCOPUS_API_KEY:
+        print("❌ Scopus Error: No API Key found in GitHub Secrets!")
+    else:
         try:
             url = f"https://api.elsevier.com/content/author?author_id={SCOPUS_ID}"
             headers = {'X-ELS-APIKey': SCOPUS_API_KEY, 'Accept': 'application/json'}
-            res = requests.get(url, headers=headers).json()
-            data = res.get('author-retrieval-response', [{}])[0]
-            core = data.get('coredata', {})
-            stats['scopus']['citations'] = int(core.get('citation-count', 0))
-            stats['scopus']['documents'] = int(core.get('document-count', 0))
-            stats['scopus']['h_index'] = int(data.get('h-index', 0))
-            print("Scopus fetched successfully.")
+            res = requests.get(url, headers=headers)
+            
+            if res.status_code == 200:
+                data = res.json().get('author-retrieval-response', [{}])[0]
+                core = data.get('coredata', {})
+                stats['scopus']['citations'] = int(core.get('citation-count', 0))
+                stats['scopus']['documents'] = int(core.get('document-count', 0))
+                stats['scopus']['h_index'] = int(data.get('h-index', 0))
+                print("✅ Scopus fetched successfully.")
+            else:
+                print(f"❌ Scopus API Error: HTTP {res.status_code} - {res.text}")
         except Exception as e:
-            print(f"Scopus Error: {e}")
+            print(f"❌ Scopus Error: {e}")
 
     # 3. Fetch INSPIRE-HEP
-    if INSPIRE_ID:
-        try:
-            # Fetches up to 250 papers to sum citations
-            url = f"https://inspirehep.net/api/literature?q=a+{INSPIRE_ID}&size=250"
-            res = requests.get(url).json()
-            hits = res.get('hits', {}).get('hits', [])
-            stats['inspire']['papers'] = res.get('hits', {}).get('total', 0)
-            stats['inspire']['citations'] = sum(h.get('metadata', {}).get('citation_count', 0) for h in hits)
-            print("INSPIRE fetched successfully.")
-        except Exception as e:
-            print(f"INSPIRE Error: {e}")
+    try:
+        # UPDATED: Using author_control_number for a precise match
+        url = f"https://inspirehep.net/api/literature?q=author_control_number:{INSPIRE_ID}&size=250"
+        res = requests.get(url)
+        
+        if res.status_code == 200:
+            data = res.json()
+            hits = data.get('hits', {}).get('hits', [])
+            total_papers = data.get('hits', {}).get('total', 0)
+            
+            if total_papers > 0:
+                stats['inspire']['papers'] = total_papers
+                stats['inspire']['citations'] = sum(h.get('metadata', {}).get('citation_count', 0) for h in hits)
+                print(f"✅ INSPIRE fetched successfully ({total_papers} papers found).")
+            else:
+                print("❌ INSPIRE fetched successfully, but 0 papers were found for this ID.")
+        else:
+            print(f"❌ INSPIRE API Error: HTTP {res.status_code}")
+    except Exception as e:
+        print(f"❌ INSPIRE Error: {e}")
 
     # Save everything to one JSON file
     with open('academic_stats.json', 'w') as f:
         json.dump(stats, f, indent=4)
+        print("💾 academic_stats.json saved successfully.")
 
 if __name__ == "__main__":
     fetch_all_stats()
