@@ -160,135 +160,161 @@
 <!-- /* Google Scholar Details */ -->
 
 <style>
-    /* Title styling */
-    .scholar-title {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        margin: 20px 0 12px 0;
-        font-size: 1.5rem;
+    .academic-section {
+        margin-bottom: 40px;
+    }
+
+    .academic-title {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+        margin: 24px 0 12px 0; 
+        font-size: 1.25rem; 
         font-weight: 600;
         border-bottom: 1px solid #eaecef;
-        padding-bottom: 8px;
-		text-align: center;
+        padding-bottom: 6px;
+        text-align: center; 
     }
 
-    /* NEW: Styling specifically for the title link */
-    .scholar-title a {
-        color: #24292e; /* Keeps the text dark gray */
-        text-decoration: none; /* Removes the default underline */
-        transition: color 0.2s ease; /* Smooth transition */
+    .academic-title a {
+        color: #24292e;
+        text-decoration: none;
+        transition: color 0.2s ease;
     }
 
-    /* NEW: Makes the link turn blue when hovered over */
-    .scholar-title a:hover {
-        color: #0366d6; /* A clean, GitHub-style blue */
-    }
+    .academic-title a:hover { color: #0366d6; }
 
-    /* Creates a responsive grid that adjusts to screen size */
-    .scholar-dashboard {
+    .stats-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-        gap: 24px;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        margin-bottom: 32px;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 16px; 
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
     }
 
-    /* Styles individual metric cards */
     .stat-card {
         background: #ffffff;
         border: 1px solid #e1e4e8;
-        border-radius: 8px;
-        padding: 20px 12px;
+        border-radius: 6px; 
+        padding: 16px 12px; 
         text-align: center;
-        box-shadow: 0 1px 3px rgba(27,31,35,0.04);
+        box-shadow: 0 1px 2px rgba(27,31,35,0.04);
         transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
 
-    /* Subtle hover effect */
     .stat-card:hover {
         transform: translateY(-2px);
         box-shadow: 0 4px 8px rgba(27,31,35,0.1);
     }
 
-    /* The large metric number */
     .stat-value {
-        font-size: 2.5rem;
+        font-size: 1.8rem; 
         font-weight: 700;
         color: #24292e; 
-        margin: 0 0 8px 0;
+        margin: 0 0 4px 0; 
         line-height: 1;
     }
 
-    /* The label below the number */
     .stat-label {
-        font-size: 0.875rem;
+        font-size: 0.75rem; 
         font-weight: 600;
         color: #586069; 
         text-transform: uppercase;
         letter-spacing: 0.5px;
         margin: 0;
     }
-
-    /* Clean loading and error states */
-    .status-state {
+    
+    .loading-state {
         text-align: center;
-        padding: 40px;
+        padding: 30px; 
         color: #586069;
         font-family: sans-serif;
         background: #f6f8fa;
-        border-radius: 8px;
+        border-radius: 6px;
         border: 1px dashed #e1e4e8;
-        margin-bottom: 32px;
     }
 </style>
 
-<div id="scholar-container">
-    <h2 class="scholar-title">
-        <a href="https://scholar.google.com/citations?user=BP85kjoAAAAJ" target="_blank" rel="noopener noreferrer">
-            Google Scholar Citation Details
-        </a>
-    </h2>
-    
-    <div id="scholar-stats">
-        <div class="status-state">
-            <p>Fetching live metrics...</p>
+<div id="academic-container">
+    <div id="all-stats">
+        <div class="loading-state">
+            <p style="margin:0; font-size:0.9rem;">Fetching live academic metrics...</p>
         </div>
     </div>
 </div>
 
 <script>
-fetch('scholar_stats.json')
+fetch('academic_stats.json')
     .then(response => {
         if (!response.ok) throw new Error('Network response was not ok');
         return response.json();
     })
     .then(data => {
-        document.getElementById('scholar-stats').innerHTML = `
-            <div class="scholar-dashboard">
-                <div class="stat-card">
-                    <p class="stat-value">${data.citations.toLocaleString()}</p>
-                    <p class="stat-label">Total Citations</p>
+        document.getElementById('all-stats').innerHTML = `
+            
+            <div class="academic-section">
+                <h2 class="academic-title">
+                    <a href="https://scholar.google.com/citations?user=BP85kjoAAAAJ" target="_blank" rel="noopener noreferrer">Google Scholar</a>
+                </h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <p class="stat-value">${data.scholar.citations.toLocaleString()}</p>
+                        <p class="stat-label">Citations</p>
+                    </div>
+                    <div class="stat-card">
+                        <p class="stat-value">${data.scholar.h_index}</p>
+                        <p class="stat-label">h-index</p>
+                    </div>
+                    <div class="stat-card">
+                        <p class="stat-value">${data.scholar.i10_index}</p>
+                        <p class="stat-label">i10-index</p>
+                    </div>
                 </div>
-                <div class="stat-card">
-                    <p class="stat-value">${data.h_index}</p>
-                    <p class="stat-label">h-index</p>
+            </div>
+
+            <div class="academic-section">
+                <h2 class="academic-title">
+                    <a href="https://www.scopus.com/authid/detail.uri?authorId=57226032682" target="_blank" rel="noopener noreferrer">Scopus</a>
+                </h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <p class="stat-value">${data.scopus.citations.toLocaleString()}</p>
+                        <p class="stat-label">Citations</p>
+                    </div>
+                    <div class="stat-card">
+                        <p class="stat-value">${data.scopus.h_index}</p>
+                        <p class="stat-label">h-index</p>
+                    </div>
+                    <div class="stat-card">
+                        <p class="stat-value">${data.scopus.documents}</p>
+                        <p class="stat-label">Documents</p>
+                    </div>
                 </div>
-                <div class="stat-card">
-                    <p class="stat-value">${data.i10_index}</p>
-                    <p class="stat-label">i10-index</p>
+            </div>
+
+            <div class="academic-section">
+                <h2 class="academic-title">
+                    <a href="https://inspirehep.net/authors/1780627" target="_blank" rel="noopener noreferrer">INSPIRE-HEP</a>
+                </h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <p class="stat-value">${data.inspire.citations.toLocaleString()}</p>
+                        <p class="stat-label">Citations</p>
+                    </div>
+                    <div class="stat-card">
+                        <p class="stat-value">${data.inspire.papers}</p>
+                        <p class="stat-label">Papers</p>
+                    </div>
                 </div>
             </div>
         `;
     })
     .catch(error => {
-        console.error('Error loading scholar stats:', error);
-        document.getElementById('scholar-stats').innerHTML = `
-            <div class="status-state" style="color: #cb2431; background: #ffeef0; border-color: #ffdce0;">
-                <strong>Unable to load metrics.</strong><br>
-                <span style="font-size: 0.9em;">Please check back later.</span>
+        console.error('Error loading stats:', error);
+        document.getElementById('all-stats').innerHTML = `
+            <div class="loading-state" style="color: #cb2431; background: #ffeef0; border-color: #ffdce0;">
+                <strong style="font-size:0.9rem;">Unable to load metrics.</strong><br>
+                <span style="font-size: 0.8rem;">Please check back later.</span>
             </div>`;
     });
 </script>
-	  
 
 <!-- /* Google Scholar */ -->
 	  
