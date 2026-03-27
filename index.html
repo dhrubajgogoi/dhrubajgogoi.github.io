@@ -1271,7 +1271,27 @@ Assamese poem collection</li>
 	  
 	  
 	  
-	  
+	<div id="scholar-stats">
+    <p>Loading live metrics...</p>
+</div>
+
+<script>
+fetch('scholar_stats.json')
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('scholar-stats').innerHTML = `
+            <ul>
+                <li><strong>Total Citations:</strong> ${data.citations}</li>
+                <li><strong>h-index:</strong> ${data.h_index}</li>
+                <li><strong>i10-index:</strong> ${data.i10_index}</li>
+            </ul>
+        `;
+    })
+    .catch(error => {
+        console.error('Error loading scholar stats:', error);
+        document.getElementById('scholar-stats').innerHTML = '<p>Stats temporarily unavailable.</p>';
+    });
+</script>  
 	  
 
  
