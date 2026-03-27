@@ -1,0 +1,36 @@
+name: Update Google Scholar Stats
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # Runs daily at midnight UTC
+  workflow_dispatch: # This adds a button to run it manually!
+
+permissions:
+  contents: write
+
+jobs:
+  update-stats:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: pip install scholarly
+
+      - name: Fetch Scholar Data
+        run: python fetch_scholar.py
+
+      - name: Commit and Push changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add scholar_stats.json
+          # Only commit if there are changes to prevent empty commits
+          git diff --quiet && git diff --staged --quiet || git commit -m "Auto-update Scholar stats"
+          git push
