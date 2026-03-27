@@ -1271,28 +1271,104 @@ Assamese poem collection</li>
 	  
 	  
 	  
-	<div id="scholar-stats">
-    <p>Loading live metrics...</p>
+<style>
+    /* Creates a responsive grid that adjusts to screen size */
+    .scholar-dashboard {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 24px;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        margin: 32px 0;
+    }
+
+    /* Styles individual metric cards */
+    .stat-card {
+        background: #ffffff;
+        border: 1px solid #e1e4e8;
+        border-radius: 8px;
+        padding: 24px 16px;
+        text-align: center;
+        box-shadow: 0 1px 3px rgba(27,31,35,0.04);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    /* Subtle hover effect */
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(27,31,35,0.1);
+    }
+
+    /* The large metric number */
+    .stat-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #24292e; /* Dark GitHub-like text */
+        margin: 0 0 8px 0;
+        line-height: 1;
+    }
+
+    /* The label below the number */
+    .stat-label {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #586069; /* Muted gray */
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin: 0;
+    }
+
+    /* Clean loading and error states */
+    .status-state {
+        text-align: center;
+        padding: 40px;
+        color: #586069;
+        font-family: sans-serif;
+        background: #f6f8fa;
+        border-radius: 8px;
+        border: 1px dashed #e1e4e8;
+    }
+</style>
+
+<div id="scholar-stats">
+    <div class="status-state">
+        <p>Fetching live metrics...</p>
+    </div>
 </div>
 
 <script>
 fetch('scholar_stats.json')
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) throw new Error('Network response was not ok');
+        return response.json();
+    })
     .then(data => {
+        // Build the HTML using the fetched data
         document.getElementById('scholar-stats').innerHTML = `
-            <ul>
-                <li><strong>Total Citations:</strong> ${data.citations}</li>
-                <li><strong>h-index:</strong> ${data.h_index}</li>
-                <li><strong>i10-index:</strong> ${data.i10_index}</li>
-            </ul>
+            <div class="scholar-dashboard">
+                <div class="stat-card">
+                    <p class="stat-value">${data.citations.toLocaleString()}</p>
+                    <p class="stat-label">Total Citations</p>
+                </div>
+                <div class="stat-card">
+                    <p class="stat-value">${data.h_index}</p>
+                    <p class="stat-label">h-index</p>
+                </div>
+                <div class="stat-card">
+                    <p class="stat-value">${data.i10_index}</p>
+                    <p class="stat-label">i10-index</p>
+                </div>
+            </div>
         `;
     })
     .catch(error => {
         console.error('Error loading scholar stats:', error);
-        document.getElementById('scholar-stats').innerHTML = '<p>Stats temporarily unavailable.</p>';
+        document.getElementById('scholar-stats').innerHTML = `
+            <div class="status-state" style="color: #cb2431; background: #ffeef0; border-color: #ffdce0;">
+                <strong>Unable to load metrics.</strong><br>
+                <span style="font-size: 0.9em;">Please check back later.</span>
+            </div>`;
     });
-</script>  
-	  
+</script>	  
 
  
 
