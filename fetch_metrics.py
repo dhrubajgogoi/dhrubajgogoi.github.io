@@ -8,11 +8,9 @@ SCHOLAR_ID = 'BP85kjoAAAAJ'
 SCOPUS_ID = '57226032682' 
 INSPIRE_ID = '1780627' 
 
-# Grabs the API key securely from GitHub Actions
 SCOPUS_API_KEY = os.environ.get('SCOPUS_API_KEY')
 
 def fetch_all_stats():
-    # Set up our baseline empty data
     stats = {
         'scholar': {'citations': 0, 'h_index': 0, 'i10_index': 0},
         'scopus': {'citations': 0, 'h_index': 0, 'documents': 0},
@@ -30,46 +28,89 @@ def fetch_all_stats():
     except Exception as e:
         print(f"❌ Scholar Error: {e}")
 
-    # 2. Fetch Scopus
+    # 2. Fetch Scopus (Using Search API to bypass IP blocks)
     if not SCOPUS_API_KEY:
         print("❌ Scopus Error: No API Key found in GitHub Secrets!")
     else:
         try:
-            url = f"https://api.elsevier.com/content/author?author_id={SCOPUS_ID}"
+            url = "https://api.elsevier.com/content/search/scopus"
             headers = {'X-ELS-APIKey': SCOPUS_API_KEY, 'Accept': 'application/json'}
-            res = requests.get(url, headers=headers)
             
-            if res.status_code == 200:
-                data = res.json().get('author-retrieval-response', [{}])[0]
-                core = data.get('coredata', {})
-                stats['scopus']['citations'] = int(core.get('citation-count', 0))
-                stats['scopus']['documents'] = int(core.get('document-count', 0))
-                stats['scopus']['h_index'] = int(data.get('h-index', 0))
-                print("✅ Scopus fetched successfully.")
+            # Loop to handle pagination if you have many papers
+            start = 0
+            citation_counts = []
+            
+            while True:
+                params = {'query': f'AU-ID({SCOPUS_ID})', 'count': 100, 'start': start}
+                res = requests.get(url, headers=headers, params=params)
+                
+                if res.status_code != 200:
+                    print(f"❌ Scopus API Error: HTTP {res.status_code} - {res.text}")
+                    break
+                    
+                entries = res.json().get('search-results', {}).get('entry', [])
+                if not entries:
+                    break
+                    
+                for entry in entries:
+                    if 'citedby-count' in entry:
+                        citation_counts.append(int(entry['citedby-count']))
+                
+                start += 100
+                if len(entries) < 100:
+                    break
+
+            if citation_counts:
+                # Calculate metrics manually
+                stats['scopus']['documents'] = len(citation_counts)
+                stats['scopus']['citations'] = sum(citation_counts)
+                
+                # Calculate h-index
+                citation_counts.sort(reverse=True)
+                h_index = 0
+                for i, citations in enumerate(citation_counts):
+                    if citations >= i + 1:
+                        h_index = i + 1
+                    else:
+                        break
+                stats['scopus']['h_index'] = h_index
+                print("✅ Scopus fetched successfully via Search API.")
             else:
-                print(f"❌ Scopus API Error: HTTP {res.status_code} - {res.text}")
+                print("❌ Scopus fetched, but 0 papers found.")
+                
         except Exception as e:
             print(f"❌ Scopus Error: {e}")
 
-    # 3. Fetch INSPIRE-HEP
+    # 3. Fetch INSPIRE-HEP (Using 2-step BAI retrieval)
     try:
-        # UPDATED: Using author_control_number for a precise match
-        url = f"https://inspirehep.net/authors/1780627&size=250"
-        res = requests.get(url)
-        
-        if res.status_code == 200:
-            data = res.json()
-            hits = data.get('hits', {}).get('hits', [])
-            total_papers = data.get('hits', {}).get('total', 0)
+        # Step A: Get Author BAI from profile
+        author_res = requests.get(f"https://inspirehep.net/api/authors/{INSPIRE_ID}")
+        if author_res.status_code == 200:
+            author_data = author_res.json()
+            ids = author_data.get('metadata', {}).get('ids', [])
+            bai = next((id_obj['value'] for id_obj in ids if id_obj['schema'] == 'INSPIRE BAI'), None)
             
-            if total_papers > 0:
-                stats['inspire']['papers'] = total_papers
-                stats['inspire']['citations'] = sum(h.get('metadata', {}).get('citation_count', 0) for h in hits)
-                print(f"✅ INSPIRE fetched successfully ({total_papers} papers found).")
+            # Step B: Search literature using the extracted BAI
+            if bai:
+                lit_res = requests.get('https://inspirehep.net/api/literature', params={'q': f'author_bai:{bai}', 'size': 250})
+                if lit_res.status_code == 200:
+                    data = lit_res.json()
+                    hits = data.get('hits', {}).get('hits', [])
+                    total_papers = data.get('hits', {}).get('total', 0)
+                    
+                    if total_papers > 0:
+                        stats['inspire']['papers'] = total_papers
+                        stats['inspire']['citations'] = sum(h.get('metadata', {}).get('citation_count', 0) for h in hits)
+                        print(f"✅ INSPIRE fetched successfully ({total_papers} papers).")
+                    else:
+                        print("❌ INSPIRE: Found BAI, but 0 papers matched.")
+                else:
+                    print(f"❌ INSPIRE Literature Error: HTTP {lit_res.status_code}")
             else:
-                print("❌ INSPIRE fetched successfully, but 0 papers were found for this ID.")
+                print("❌ INSPIRE: Could not find BAI in author profile.")
         else:
-            print(f"❌ INSPIRE API Error: HTTP {res.status_code}")
+            print(f"❌ INSPIRE Author Error: HTTP {author_res.status_code}")
+            
     except Exception as e:
         print(f"❌ INSPIRE Error: {e}")
 
