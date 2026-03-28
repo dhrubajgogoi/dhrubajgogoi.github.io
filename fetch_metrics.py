@@ -54,7 +54,7 @@ def fetch_all_stats():
     # 3. Fetch INSPIRE-HEP
     try:
         # UPDATED: Using author_control_number for a precise match
-        url = f"https://inspirehep.net/api/literature?q=author_control_number:{INSPIRE_ID}&size=250"
+        url = f"https://inspirehep.net/authors/1780627&size=250"
         res = requests.get(url)
         
         if res.status_code == 200:
