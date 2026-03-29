@@ -5,12 +5,12 @@
         "i10_index": 0
     },
     "scopus": {
-        "citations": 0,
-        "h_index": 0,
-        "documents": 0
+        "citations": 909,
+        "h_index": 19,
+        "documents": 52
     },
     "inspire": {
-        "citations": 0,
-        "papers": 0
+        "citations": 1146,
+        "papers": 53
     }
 }
