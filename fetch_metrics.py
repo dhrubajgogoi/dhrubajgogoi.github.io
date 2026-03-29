@@ -28,7 +28,7 @@ def fetch_all_stats():
     except Exception as e:
         print(f"❌ Scholar Error: {e}")
 
-    # 2. Fetch Scopus (Using Search API to bypass IP blocks)
+    # 2. Fetch Scopus 
     if not SCOPUS_API_KEY:
         print("❌ Scopus Error: No API Key found in GitHub Secrets!")
     else:
@@ -36,12 +36,12 @@ def fetch_all_stats():
             url = "https://api.elsevier.com/content/search/scopus"
             headers = {'X-ELS-APIKey': SCOPUS_API_KEY, 'Accept': 'application/json'}
             
-            # Loop to handle pagination if you have many papers
             start = 0
             citation_counts = []
             
             while True:
-                params = {'query': f'AU-ID({SCOPUS_ID})', 'count': 100, 'start': start}
+                # FIXED: Changed count to 25. 100 exceeds the free API tier limits!
+                params = {'query': f'AU-ID({SCOPUS_ID})', 'count': 25, 'start': start}
                 res = requests.get(url, headers=headers, params=params)
                 
                 if res.status_code != 200:
@@ -56,16 +56,15 @@ def fetch_all_stats():
                     if 'citedby-count' in entry:
                         citation_counts.append(int(entry['citedby-count']))
                 
-                start += 100
-                if len(entries) < 100:
+                # FIXED: Increment by 25
+                start += 25
+                if len(entries) < 25:
                     break
 
             if citation_counts:
-                # Calculate metrics manually
                 stats['scopus']['documents'] = len(citation_counts)
                 stats['scopus']['citations'] = sum(citation_counts)
                 
-                # Calculate h-index
                 citation_counts.sort(reverse=True)
                 h_index = 0
                 for i, citations in enumerate(citation_counts):
@@ -81,18 +80,30 @@ def fetch_all_stats():
         except Exception as e:
             print(f"❌ Scopus Error: {e}")
 
-    # 3. Fetch INSPIRE-HEP (Using 2-step BAI retrieval)
+    # 3. Fetch INSPIRE-HEP 
     try:
-        # Step A: Get Author BAI from profile
         author_res = requests.get(f"https://inspirehep.net/api/authors/{INSPIRE_ID}")
         if author_res.status_code == 200:
             author_data = author_res.json()
-            ids = author_data.get('metadata', {}).get('ids', [])
-            bai = next((id_obj['value'] for id_obj in ids if id_obj['schema'] == 'INSPIRE BAI'), None)
             
-            # Step B: Search literature using the extracted BAI
-            if bai:
-                lit_res = requests.get('https://inspirehep.net/api/literature', params={'q': f'author_bai:{bai}', 'size': 250})
+            # FIXED: Grab the exact internal papers link directly from your profile data
+            lit_url = author_data.get('links', {}).get('papers')
+            if not lit_url:
+                lit_url = author_data.get('links', {}).get('literature')
+            
+            # Fallback to BAI search if the direct link isn't found
+            if not lit_url:
+                ids = author_data.get('metadata', {}).get('ids', [])
+                bai = next((id_obj['value'] for id_obj in ids if id_obj['schema'] == 'INSPIRE BAI'), None)
+                if bai:
+                    lit_url = f"https://inspirehep.net/api/literature?q=a+{bai}"
+
+            if lit_url:
+                # Add size=250 to fetch all papers at once
+                separator = "&" if "?" in lit_url else "?"
+                lit_url = f"{lit_url}{separator}size=250"
+                
+                lit_res = requests.get(lit_url)
                 if lit_res.status_code == 200:
                     data = lit_res.json()
                     hits = data.get('hits', {}).get('hits', [])
@@ -103,11 +114,11 @@ def fetch_all_stats():
                         stats['inspire']['citations'] = sum(h.get('metadata', {}).get('citation_count', 0) for h in hits)
                         print(f"✅ INSPIRE fetched successfully ({total_papers} papers).")
                     else:
-                        print("❌ INSPIRE: Found BAI, but 0 papers matched.")
+                        print("❌ INSPIRE: Searched via official link, but 0 papers matched.")
                 else:
                     print(f"❌ INSPIRE Literature Error: HTTP {lit_res.status_code}")
             else:
-                print("❌ INSPIRE: Could not find BAI in author profile.")
+                print("❌ INSPIRE: Could not find literature link or BAI in author profile.")
         else:
             print(f"❌ INSPIRE Author Error: HTTP {author_res.status_code}")
             
