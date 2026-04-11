@@ -1,11 +1,11 @@
 {
     "scholar": {
-        "citations": 1255,
-        "h_index": 22,
-        "i10_index": 35
+        "citations": 0,
+        "h_index": 0,
+        "i10_index": 0
     },
     "scopus": {
-        "citations": 929,
+        "citations": 932,
         "h_index": 19,
         "documents": 52
     },
