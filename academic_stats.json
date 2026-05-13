@@ -1,16 +1,16 @@
 {
     "scholar": {
-        "citations": 1274,
-        "h_index": 23,
-        "i10_index": 35
+        "citations": 0,
+        "h_index": 0,
+        "i10_index": 0
     },
     "scopus": {
-        "citations": 948,
+        "citations": 951,
         "h_index": 19,
         "documents": 51
     },
     "inspire": {
-        "citations": 1170,
+        "citations": 1175,
         "papers": 54
     }
 }
