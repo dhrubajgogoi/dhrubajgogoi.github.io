@@ -1,8 +1,8 @@
 {
     "scholar": {
-        "citations": 1387,
-        "h_index": 24,
-        "i10_index": 35
+        "citations": 0,
+        "h_index": 0,
+        "i10_index": 0
     },
     "scopus": {
         "citations": 1033,
@@ -10,7 +10,7 @@
         "documents": 53
     },
     "inspire": {
-        "citations": 1260,
+        "citations": 1261,
         "papers": 62
     }
 }
